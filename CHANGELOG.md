@@ -4,6 +4,10 @@
 
 - Stop sharing the same attributes hash between the fetched record and the memoized cache, which could interfere with dirty tracking
 
+#### 0.3.2  (unreleased)
+
+- Fetched has many associations returns an Array rather than a relation
+
 #### 0.3.1
 
 - Fix cache_index for non-id primary key

@@ -146,7 +146,7 @@ module IdentityCache
           association = reflection.association_class.new(record, reflection)
           association.target = coder_or_array.map {|e| record_from_coder(e) }
           association.target.each {|e| association.set_inverse_instance(e) }
-          association
+          association.target
         else
           record_from_coder(coder_or_array)
         end
@@ -156,7 +156,7 @@ module IdentityCache
 
       def get_embedded_association(record, association, options) #:nodoc:
         embedded_variable = record.public_send(options.fetch(:cached_accessor_name))
-        if record.class.reflect_on_association(association).collection?
+        if embedded_variable.is_a?(Array)
           embedded_variable.map {|e| coder_from_record(e) }
         else
           coder_from_record(embedded_variable)
@@ -166,7 +166,7 @@ module IdentityCache
       def coder_from_record(record) #:nodoc:
         unless record.nil?
           coder = {
-            attributes: record.attributes_before_type_cast.dup,
+            attributes: record.attributes_before_type_cast,
             class: record.class,
           }
           add_cached_associations_to_coder(record, coder)
@@ -401,15 +401,14 @@ module IdentityCache
       if IdentityCache.should_use_cache?
         ivar_full_name = :"@#{ivar_name}"
 
-        assoc = if instance_variable_defined?(ivar_full_name)
+        if instance_variable_defined?(ivar_full_name)
           instance_variable_get(ivar_full_name)
         else
-          instance_variable_set(ivar_full_name, send(association_name))
+          instance_variable_set(ivar_full_name, association(association_name).load_target)
         end
 
-        assoc.is_a?(ActiveRecord::Associations::CollectionAssociation) ? assoc.reader : assoc
       else
-        send(association_name.to_sym)
+        association(association_name).load_target
       end
     end
 

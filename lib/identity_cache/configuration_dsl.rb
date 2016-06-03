@@ -236,7 +236,7 @@ module IdentityCache
             if IdentityCache.should_use_cache? || #{association}.loaded?
               @#{options[:records_variable_name]} ||= #{options[:association_reflection].klass}.fetch_multi(#{options[:cached_ids_name]})
             else
-              #{association}
+              association(:#{association}).load_target
             end
           end
 
